@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package rate_service.v1;
+
+option go_package =
+    "studentgit.kata.academy/KonstantinDolgov/grpc-rate-service/pkg/grpc/rate_service_v1";
+
+import "google/protobuf/timestamp.proto";
+
+message GetRatesRequest{
+  string symbol = 1;
+}
+
+message GetRatesResponse{
+  double ask = 1;
+  double bid = 2;
+  google.protobuf.Timestamp timestamp = 3;
+}
+
+message HealthCheckRequest {}
+
+message HealthCheckResponse {
+  bool healthy = 1;
+}
+
+service RateService {
+  rpc GetRates (GetRatesRequest) returns (GetRatesResponse);
+  rpc HealthCheck (HealthCheckRequest) returns (HealthCheckResponse);
+}
