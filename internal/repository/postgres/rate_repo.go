@@ -4,11 +4,12 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	_ "github.com/lib/pq"
+	"time"
+
+	_ "github.com/jackc/pgx/v5/stdlib"
 	"go.uber.org/zap"
 	"studentgit.kata.academy/KonstantinDolgov/grpc-rate-service/internal/model"
 	"studentgit.kata.academy/KonstantinDolgov/grpc-rate-service/internal/repository"
-	"time"
 )
 
 type Repository struct {
@@ -16,13 +17,10 @@ type Repository struct {
 	logger *zap.Logger
 }
 
-// Проверка, что Repository реализует интерфейс repository.RateRepository
-var _ repository.RateRepository = (*Repository)(nil)
-
 func NewRepository(connString string, logger *zap.Logger) (repository.RateRepository, error) {
 	logger.Debug("Initializing database repository")
 
-	db, err := sql.Open("postgres", connString)
+	db, err := sql.Open("pgx", connString)
 	if err != nil {
 		logger.Error("Failed to open database connection", zap.Error(err))
 		return nil, fmt.Errorf("failed to connect to database: %w", err)

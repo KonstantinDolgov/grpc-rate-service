@@ -3,8 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
-	"go.uber.org/zap"
 	"os"
+
+	"go.uber.org/zap"
 	"studentgit.kata.academy/KonstantinDolgov/grpc-rate-service/config"
 	"studentgit.kata.academy/KonstantinDolgov/grpc-rate-service/internal/app"
 	"studentgit.kata.academy/KonstantinDolgov/grpc-rate-service/pkg/logger"

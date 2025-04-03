@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"go.uber.org/zap"
 	"studentgit.kata.academy/KonstantinDolgov/grpc-rate-service/internal/exchange/kucoin"
 	"studentgit.kata.academy/KonstantinDolgov/grpc-rate-service/internal/model"
@@ -40,9 +42,20 @@ func (s *RateService) GetRates(ctx context.Context, symbol string) (float64, flo
 	}
 
 	if err := s.repo.SaveRate(ctx, rate); err != nil {
-		s.logger.Error("Failed to save rate", zap.Error(err), zap.String("symbol", symbol))
+		s.logger.Error("Failed to save rate",
+			zap.Error(err),
+			zap.String("symbol", symbol),
+			zap.Float64("ask", ask),
+			zap.Float64("bid", bid),
+			zap.Time("timestamp", timestamp))
+
 		// Не возвращаем ошибку, чтобы клиент все равно получил данные о курсе
 		// Можно добавить метрику для мониторинга таких ситуаций
+	} else {
+		s.logger.Info("Successfully saved rate to database",
+			zap.String("symbol", symbol),
+			zap.Float64("ask", ask),
+			zap.Float64("bid", bid))
 	}
 
 	return ask, bid, timestamp, nil
@@ -52,8 +65,11 @@ func (s *RateService) HealthCheck(ctx context.Context) bool {
 	// Проверяем соединение с базой данных
 	_, err := s.repo.GetLatestRate(ctx, "BTC-USDT")
 	if err != nil {
-		s.logger.Error("Health check failed: database connection error", zap.Error(err))
-		return false
+		// Пустая база не считается ошибкой, только проверяем, есть ли соединение с БД
+		if !errors.Is(err, sql.ErrNoRows) {
+			s.logger.Error("Health check failed: database connection error", zap.Error(err))
+			return false
+		}
 	}
 
 	// Проверяем соединение с API KuCoin

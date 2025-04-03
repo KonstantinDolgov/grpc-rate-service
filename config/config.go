@@ -3,6 +3,7 @@ package config
 import (
 	"flag"
 	"fmt"
+
 	"github.com/caarlos0/env/v6"
 )
 
@@ -44,6 +45,8 @@ func ReadConfig() (*Config, error) {
 }
 
 func (c *Config) GetDBConnString() string {
-	return "host=" + c.DBHost + " port=" + c.DBPort + " user=" + c.DBUser + " password=" + c.DBPassword +
-		" dbname=" + c.DBName + " sslmode=" + c.DBSSLMode
+	connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
+		c.DBHost, c.DBPort, c.DBUser, c.DBPassword, c.DBName, c.DBSSLMode)
+
+	return connStr
 }

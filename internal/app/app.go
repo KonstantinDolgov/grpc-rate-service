@@ -3,19 +3,21 @@ package app
 import (
 	"context"
 	"fmt"
-	"github.com/pressly/goose/v3"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/reflection"
 	"net"
 	"os"
 	"os/signal"
+	"syscall"
+
+	"github.com/pressly/goose/v3"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 	"studentgit.kata.academy/KonstantinDolgov/grpc-rate-service/config"
 	"studentgit.kata.academy/KonstantinDolgov/grpc-rate-service/internal/exchange/kucoin"
 	"studentgit.kata.academy/KonstantinDolgov/grpc-rate-service/internal/repository"
 	"studentgit.kata.academy/KonstantinDolgov/grpc-rate-service/internal/repository/postgres"
 	"studentgit.kata.academy/KonstantinDolgov/grpc-rate-service/internal/service"
-	"syscall"
 
+	_ "github.com/jackc/pgx/v5/stdlib"
 	"go.uber.org/zap"
 	grpcServer "studentgit.kata.academy/KonstantinDolgov/grpc-rate-service/internal/handler/grpc"
 	pb "studentgit.kata.academy/KonstantinDolgov/grpc-rate-service/pkg/grpc/rate_service_v1"
@@ -124,7 +126,7 @@ func (a *App) Shutdown() {
 
 // runMigrations запускает миграции базы данных
 func (a *App) runMigrations() error {
-	db, err := goose.OpenDBWithDriver("postgres", a.config.GetDBConnString())
+	db, err := goose.OpenDBWithDriver("pgx", a.config.GetDBConnString())
 	if err != nil {
 		return err
 	}
