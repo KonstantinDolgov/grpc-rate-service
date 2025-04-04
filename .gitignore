@@ -16,6 +16,7 @@
 
 # Environment variables file
 .env*
+!.env.example
 
 # IDE settings
 .idea/

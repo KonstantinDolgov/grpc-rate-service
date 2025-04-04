@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+
 	"studentgit.kata.academy/KonstantinDolgov/grpc-rate-service/internal/model"
 )
 

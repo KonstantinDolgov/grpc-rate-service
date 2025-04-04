@@ -2,7 +2,7 @@ package grpc
 
 import (
 	"context"
-	"studentgit.kata.academy/KonstantinDolgov/grpc-rate-service/internal/service"
+	"time"
 
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
@@ -11,13 +11,18 @@ import (
 	pb "studentgit.kata.academy/KonstantinDolgov/grpc-rate-service/pkg/grpc/rate_service_v1"
 )
 
+// RateServiceInterface - интерфейс для сервиса ставок, для облегчения тестирования
+type RateServiceInterface interface {
+	GetRates(ctx context.Context, symbol string) (float64, float64, time.Time, error)
+	HealthCheck(ctx context.Context) bool
+}
 type RateServiceServer struct {
 	pb.UnimplementedRateServiceServer
 	logger      *zap.Logger
-	rateService *service.RateService
+	rateService RateServiceInterface
 }
 
-func NewRateServiceServer(logger *zap.Logger, rateService *service.RateService) *RateServiceServer {
+func NewRateServiceServer(logger *zap.Logger, rateService RateServiceInterface) *RateServiceServer {
 	return &RateServiceServer{
 		logger:      logger,
 		rateService: rateService,

@@ -22,7 +22,11 @@ func main() {
 	// Инициализация логгера
 	logger.BuildLogger(readConfig.LogLevel)
 	applogger := logger.Logger().Named("main")
-	defer applogger.Sync()
+	defer func() {
+		if err := applogger.Sync(); err != nil {
+			fmt.Printf("Failed to sync logger: %v\n", err)
+		}
+	}()
 
 	// Создание и инициализация приложения
 	application, err := app.NewApp(readConfig, applogger)

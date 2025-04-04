@@ -4,11 +4,12 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"time"
+
 	"go.uber.org/zap"
 	"studentgit.kata.academy/KonstantinDolgov/grpc-rate-service/internal/exchange/kucoin"
 	"studentgit.kata.academy/KonstantinDolgov/grpc-rate-service/internal/model"
 	"studentgit.kata.academy/KonstantinDolgov/grpc-rate-service/internal/repository"
-	"time"
 )
 
 type RateService struct {
