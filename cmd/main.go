@@ -28,6 +28,21 @@ func main() {
 		}
 	}()
 
+	// Логирование информации о конфигурации телеметрии
+	if readConfig.EnableTracing {
+		applogger.Info("OpenTelemetry tracing enabled",
+			zap.String("otlp_endpoint", readConfig.OTLPEndpoint))
+	} else {
+		applogger.Info("OpenTelemetry tracing disabled")
+	}
+
+	if readConfig.EnableMetrics {
+		applogger.Info("Prometheus metrics enabled",
+			zap.String("metrics_http_addr", readConfig.MetricsHTTPAddr))
+	} else {
+		applogger.Info("Prometheus metrics disabled")
+	}
+
 	// Создание и инициализация приложения
 	application, err := app.NewApp(readConfig, applogger)
 	if err != nil {

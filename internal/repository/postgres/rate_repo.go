@@ -7,6 +7,10 @@ import (
 	"time"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/trace"
 	"go.uber.org/zap"
 	"studentgit.kata.academy/KonstantinDolgov/grpc-rate-service/internal/model"
 	"studentgit.kata.academy/KonstantinDolgov/grpc-rate-service/internal/repository"
@@ -15,6 +19,7 @@ import (
 type Repository struct {
 	db     *sql.DB
 	logger *zap.Logger
+	tracer trace.Tracer
 }
 
 func NewRepository(connString string, logger *zap.Logger) (repository.RateRepository, error) {
@@ -36,10 +41,23 @@ func NewRepository(connString string, logger *zap.Logger) (repository.RateReposi
 	return &Repository{
 		db:     db,
 		logger: logger,
+		tracer: otel.Tracer("db-repository"),
 	}, nil
 }
 
 func (r *Repository) SaveRate(ctx context.Context, rate model.Rate) error {
+	// Создаем спан для трассировки только если трассировщик инициализирован
+	var span trace.Span
+	if r.tracer != nil {
+		ctx, span = r.tracer.Start(ctx, "Repository.SaveRate",
+			trace.WithAttributes(
+				attribute.String("symbol", rate.Symbol),
+				attribute.Float64("ask", rate.Ask),
+				attribute.Float64("bid", rate.Bid),
+			))
+		defer span.End()
+	}
+
 	query := `
 		INSERT INTO rates (symbol, ask, bid, timestamp, created_at)
 		VALUES ($1, $2, $3, $4, $5)
@@ -60,6 +78,12 @@ func (r *Repository) SaveRate(ctx context.Context, rate model.Rate) error {
 			zap.Float64("ask", rate.Ask),
 			zap.Float64("bid", rate.Bid),
 			zap.Error(err))
+
+		if span != nil {
+			span.SetStatus(codes.Error, "Failed to save rate to database")
+			span.RecordError(err)
+		}
+
 		return fmt.Errorf("failed to execute insert query: %w", err)
 	}
 
@@ -68,10 +92,21 @@ func (r *Repository) SaveRate(ctx context.Context, rate model.Rate) error {
 		zap.Float64("ask", rate.Ask),
 		zap.Float64("bid", rate.Bid))
 
+	if span != nil {
+		span.SetStatus(codes.Ok, "Rate saved successfully")
+	}
 	return nil
 }
 
 func (r *Repository) GetLatestRate(ctx context.Context, symbol string) (*model.Rate, error) {
+	// Создаем спан для трассировки только если трассировщик инициализирован
+	var span trace.Span
+	if r.tracer != nil {
+		ctx, span = r.tracer.Start(ctx, "Repository.GetLatestRate",
+			trace.WithAttributes(attribute.String("symbol", symbol)))
+		defer span.End()
+	}
+
 	query := `
 		SELECT id, symbol, ask, bid, timestamp, created_at
 		FROM rates
@@ -93,6 +128,11 @@ func (r *Repository) GetLatestRate(ctx context.Context, symbol string) (*model.R
 		r.logger.Error("Failed to get latest rate",
 			zap.String("symbol", symbol),
 			zap.Error(err))
+
+		if span != nil {
+			span.SetStatus(codes.Error, "Failed to get latest rate from database")
+			span.RecordError(err)
+		}
 		return nil, fmt.Errorf("failed to get latest rate: %w", err)
 	}
 
@@ -101,6 +141,15 @@ func (r *Repository) GetLatestRate(ctx context.Context, symbol string) (*model.R
 		zap.Float64("ask", rate.Ask),
 		zap.Float64("bid", rate.Bid),
 		zap.Time("timestamp", rate.Timestamp))
+
+	if span != nil {
+		span.SetAttributes(
+			attribute.Float64("ask", rate.Ask),
+			attribute.Float64("bid", rate.Bid),
+			attribute.String("timestamp", rate.Timestamp.Format(time.RFC3339)),
+		)
+		span.SetStatus(codes.Ok, "Latest rate retrieved successfully")
+	}
 
 	return &rate, nil
 }

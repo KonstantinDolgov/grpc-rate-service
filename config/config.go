@@ -20,7 +20,17 @@ type Config struct {
 
 	LogLevel          string `env:"LOG_LEVEL" envDefault:"DEBUG"`
 	EnableDebugServer bool   `env:"ENABLE_DEBUG_SERVER" envDefault:"true"`
-	DebugServerAddr   string `env:"DEBUG_SERVER_ADDR" envDefault:"0.0.0.0:8181"`
+	DebugServerAddr   string `env:"DEBUG_SERVER_ADDR" envDefault:"0.0.0.0:8182"`
+
+	ServiceName    string `env:"SERVICE_NAME" envDefault:"rate-service"`
+	ServiceVersion string `env:"SERVICE_VERSION" envDefault:"1.0.0"`
+	Environment    string `env:"ENVIRONMENT" envDefault:"development"`
+
+	EnableTracing bool   `env:"ENABLE_TRACING" envDefault:"true"`
+	OTLPEndpoint  string `env:"OTLP_ENDPOINT" envDefault:"localhost:4317"`
+
+	EnableMetrics   bool   `env:"ENABLE_METRICS" envDefault:"true"`
+	MetricsHTTPAddr string `env:"METRICS_HTTP_ADDR" envDefault:"0.0.0.0:9090"`
 }
 
 func ReadConfig() (*Config, error) {
@@ -39,6 +49,16 @@ func ReadConfig() (*Config, error) {
 	flag.StringVar(&config.DBName, "db-name", config.DBName, "Database name")
 	flag.StringVar(&config.DBSSLMode, "db-sslmode", config.DBSSLMode, "Database SSL mode")
 	flag.StringVar(&config.KuCoinBaseURL, "kucoin-base-url", config.KuCoinBaseURL, "KuCoin API base URL")
+
+	flag.BoolVar(&config.EnableTracing, "enable-tracing",
+		config.EnableTracing, "Enable OpenTelemetry tracing")
+	flag.StringVar(&config.OTLPEndpoint, "otlp-endpoint",
+		config.OTLPEndpoint, "OpenTelemetry collector endpoint")
+	flag.BoolVar(&config.EnableMetrics, "enable-metrics",
+		config.EnableMetrics, "Enable Prometheus metrics")
+	flag.StringVar(&config.MetricsHTTPAddr, "metrics-http-addr",
+		config.MetricsHTTPAddr, "Prometheus metrics HTTP server address")
+
 	flag.Parse()
 
 	return &config, err

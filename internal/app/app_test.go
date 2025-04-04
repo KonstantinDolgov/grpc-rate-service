@@ -107,7 +107,7 @@ func TestShutdown(t *testing.T) {
 	mockRepo.On("Close").Return(nil)
 
 	// Act
-	app.Shutdown()
+	app.Shutdown(context.Background())
 
 	// Assert
 	mockRepo.AssertExpectations(t)
@@ -128,7 +128,7 @@ func TestShutdown_WithError(t *testing.T) {
 	mockRepo.On("Close").Return(expectedErr)
 
 	// Act - не должно паниковать
-	app.Shutdown()
+	app.Shutdown(context.Background())
 
 	// Assert
 	mockRepo.AssertExpectations(t)
