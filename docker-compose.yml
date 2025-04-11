@@ -74,6 +74,7 @@ services:
       - METRICS_HTTP_ADDR=0.0.0.0:8181
       - ENABLE_DEBUG_SERVER=true
       - DEBUG_SERVER_ADDR=0.0.0.0:8182
+    restart: on-failure
 
 volumes:
   postgres_volume:

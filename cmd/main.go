@@ -15,7 +15,7 @@ func main() {
 	// Загрузка конфигурации
 	readConfig, err := config.ReadConfig()
 	if err != nil {
-		fmt.Printf("Failed to load config: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Failed to load config: %v\n", err)
 		os.Exit(1)
 	}
 
@@ -24,7 +24,8 @@ func main() {
 	applogger := logger.Logger().Named("main")
 	defer func() {
 		if err := applogger.Sync(); err != nil {
-			fmt.Printf("Failed to sync logger: %v\n", err)
+			fmt.Fprintf(os.Stderr, "Failed to build logger: %v\n", err)
+			os.Exit(1)
 		}
 	}()
 

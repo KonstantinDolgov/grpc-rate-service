@@ -30,7 +30,7 @@ var (
 	RequestCounter = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Name: "grpc_requests_total",
-			Help: "Количество gRPC запросов",
+			Help: "Total number of gRPC requests",
 		},
 		[]string{"method", "status"},
 	)
@@ -38,7 +38,7 @@ var (
 	RequestDuration = prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Name:    "grpc_request_duration_seconds",
-			Help:    "Длительность gRPC запросов в секундах",
+			Help:    "Duration of gRPC requests in seconds",
 			Buckets: prometheus.DefBuckets,
 		},
 		[]string{"method"},
@@ -47,7 +47,7 @@ var (
 	RateFetchCounter = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Name: "rate_fetch_total",
-			Help: "Количество запросов на получение курсов валют",
+			Help: "Total number of currency rate fetch requests",
 		},
 		[]string{"symbol", "status"},
 	)
@@ -62,7 +62,7 @@ func init() {
 
 // InitMetrics инициализирует метрики с использованием Prometheus и OpenTelemetry
 func InitMetrics(ctx context.Context, config MetricsConfig, logger *zap.Logger) (func(context.Context) error, error) {
-	logger.Info("Инициализация метрик Prometheus",
+	logger.Info("Initializing Prometheus metrics",
 		zap.String("service", config.ServiceName),
 		zap.String("endpoint", config.HTTPAddr))
 
@@ -75,13 +75,13 @@ func InitMetrics(ctx context.Context, config MetricsConfig, logger *zap.Logger) 
 		),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("не удалось создать ресурс OpenTelemetry: %w", err)
+		return nil, fmt.Errorf("failed to create OpenTelemetry resource: %w", err)
 	}
 
 	// Создаем экспортер Prometheus
 	exporter, err := promexporter.New()
 	if err != nil {
-		return nil, fmt.Errorf("не удалось создать экспортер Prometheus: %w", err)
+		return nil, fmt.Errorf("failed to create Prometheus exporter: %w", err)
 	}
 
 	// Создаем провайдер метрик
@@ -106,17 +106,17 @@ func InitMetrics(ctx context.Context, config MetricsConfig, logger *zap.Logger) 
 			IdleTimeout:  30 * time.Second,
 		}
 
-		logger.Info("Запуск HTTP сервера для метрик Prometheus", zap.String("addr", config.HTTPAddr))
+		logger.Info("Starting HTTP server for Prometheus metrics", zap.String("addr", config.HTTPAddr))
 		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			logger.Error("Не удалось запустить HTTP сервер для метрик", zap.Error(err))
+			logger.Error("Failed to start metrics HTTP server", zap.Error(err))
 		}
 	}()
 
-	logger.Info("Метрики Prometheus успешно инициализированы")
+	logger.Info("Prometheus metrics successfully initialized")
 
 	// Возвращаем функцию для закрытия провайдера метрик
 	return func(ctx context.Context) error {
-		logger.Info("Завершение работы провайдера метрик")
+		logger.Info("Shutting down metrics provider")
 		return meterProvider.Shutdown(ctx)
 	}, nil
 }

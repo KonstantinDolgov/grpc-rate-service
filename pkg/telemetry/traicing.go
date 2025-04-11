@@ -25,7 +25,7 @@ type TracingConfig struct {
 
 // InitTracing инициализирует трассировку с использованием OpenTelemetry
 func InitTracing(ctx context.Context, config TracingConfig, logger *zap.Logger) (func(context.Context) error, error) {
-	logger.Info("Инициализация трассировки OpenTelemetry",
+	logger.Info("Initializing OpenTelemetry tracing",
 		zap.String("service", config.ServiceName),
 		zap.String("endpoint", config.OTLPEndpoint))
 
@@ -38,7 +38,7 @@ func InitTracing(ctx context.Context, config TracingConfig, logger *zap.Logger) 
 		),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("не удалось создать ресурс OpenTelemetry: %w", err)
+		return nil, fmt.Errorf("failed to create OpenTelemetry resource: %w", err)
 	}
 
 	// Настраиваем коннект к коллектору OTLP (например, Jaeger или Collector)
@@ -52,7 +52,7 @@ func InitTracing(ctx context.Context, config TracingConfig, logger *zap.Logger) 
 	client := otlptracegrpc.NewClient(opts...)
 	exporter, err := otlptrace.New(ctx, client)
 	if err != nil {
-		return nil, fmt.Errorf("не удалось создать OTLP экспортер: %w", err)
+		return nil, fmt.Errorf("failed to create OTLP exporter: %w", err)
 	}
 
 	// Создаем трасировщик
@@ -69,11 +69,11 @@ func InitTracing(ctx context.Context, config TracingConfig, logger *zap.Logger) 
 		propagation.Baggage{},
 	))
 
-	logger.Info("Трассировка OpenTelemetry успешно инициализирована")
+	logger.Info("OpenTelemetry tracing successfully initialized")
 
 	// Возвращаем функцию для закрытия трасировщика
 	return func(ctx context.Context) error {
-		logger.Info("Завершение работы трасировщика OpenTelemetry")
+		logger.Info("Shutting down OpenTelemetry tracer provider")
 		return tp.Shutdown(ctx)
 	}, nil
 }
